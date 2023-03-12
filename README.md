@@ -168,6 +168,14 @@ and run
 docker-compose-linux-x86_64 up -d
 ```
 
+2.6 Install pgcli
+```
+pip install pgcli
+pgcli -h localhost -U root -d youtube
+```
+You should have succesfully logged in the pgcli 
+
+
 
 
 
