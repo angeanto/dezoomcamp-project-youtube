@@ -115,7 +115,47 @@ source ~/.bashrc
 which python
 ```
 
+2.4 Clone project to VM
+```
+git clone https://github.com/angeanto/dezoomcamp-project-youtube.git
+```
 
+2.5 Install docker
 
+```
+sudo apt-get update
+sudo apt-get install docker.io
+sudo gpasswd -a $USER docker
+```
+Log out and login again to refresh group permissions and run docker without sudo.
 
+Add docker path to .bashrc
 
+```
+cd --
+mkdir bin
+cd bin/
+wget https://github.com/docker/compose/releases/download/v2.16.0/docker-compose-linux-x86_64
+chmod +x docker-compose-linux-x86_64
+./docker-compose-linux-x86_64 version
+cd
+nano .bashrc
+```
+Add
+```
+export PATH="${HOME}/bin:${PATH}"
+```
+Press ctrl + O to save the file. 
+Press ctrl + X to exit 
+Run
+```
+source .bashrc
+which docker-compose-linux-x86_64
+```
+You should see the relevant path
+and by running from the root directory
+```
+docker-compose-linux-x86_64 version
+```
+you should see the relevant version
+ 
