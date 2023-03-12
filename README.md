@@ -158,4 +158,26 @@ and by running from the root directory
 docker-compose-linux-x86_64 version
 ```
 you should see the relevant version
- 
+
+From the root directory of the project navigate to 
+```
+cd 1_setup_cloud
+```
+and run 
+```
+docker-compose-linux-x86_64 up -d
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
