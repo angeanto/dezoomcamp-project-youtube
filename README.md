@@ -175,17 +175,113 @@ pgcli -h localhost -U root -d youtube
 ```
 You should have succesfully logged in the pgcli 
 
+2.7 Install psycopg2
+
+```
+cd -
+conda install psycopg2
+```
+
+2.8 Connect pgadmin with postgres (not necessary)
+https://www.youtube.com/watch?v=hCAIVe9N0ow&list=PL3MmuxUbc_hJed7dXYoJw8DoCuVHhGEQb&index=7 (5:10)
 
 
+2.9 Move kaggle.json from local to remote in order the VM to has access to kaggle. 
+```
+put .kaggle/kaggle.json .kaggle
+```
 
+3. Download data
+cd data
+kaggle datasets download -d rsrishav/youtube-trending-video-dataset --force
+sudo apt-get install unzip
 
+SOS 30 GB disk for the gcs instance
 
+4. Workflow orchestration
 
+4.1 Create prefect workspace
 
+install prefect and run prefect/orion server locally
+```
+pip install -U prefect
+```
+Run 1 time
+```
+!pip install prefect==2.7.7
+!pip install prefect-sqlalchemy==0.2.2
+!pip install prefect-gcp[cloud_storage]==0.2.4
+!pip install protobuf==4.21.11
+!pip installpandas-gbq==0.18.1
+!pip install pyarrow==10.0.1
+!pip install pandas-gbq==0.18.1
+```
+Run from ~/dezoomcamp-project-youtube/3_upload_data_from_postgres_to_gcs
+```
+prefect orion start
+prefect config set PREFECT_API_URL=http://localhost:4200/api
+prefect block register -m prefect_gcp
+```
 
+4.2 Create prefect block for GCS 
 
+https://www.youtube.com/watch?v=W-rMz_2GwqQ&list=PL3MmuxUbc_hJed7dXYoJw8DoCuVHhGEQb&index=20 (25:54)
 
+Create locally the blocks.
 
+GCP Credentials / zoom-gcp-creds
+GCS / zoom-gcs
 
+4.3 Create deployments
 
+Run from directory: dezoomcamp-project-youtube/2_upload_data_to_postgres
+```
+prefect deployment build ./upload-data.py:etl_web_to_postgres -n "Web to Postgres"
+```
 
+4.3 Create deployments
+Run from directory: dezoomcamp-project-youtube/2_upload_data_to_postgres
+```
+prefect deployment build ./upload-data.py:etl_web_to_postgres -n "Web to Postgres"
+prefect deployment apply etl_web_to_postgres-deployment.yaml
+```
+
+Run from directory: dezoomcamp-project-youtube/3_upload_data_from_postgres_to_gcs
+```
+prefect deployment build ./move-data-to-gcs.py:etl_postgres_to_gcs -n "Postgres to GCS"
+prefect deployment apply etl_postgres_to_gcs-deployment.yaml
+```
+
+Run from directory: dezoomcamp-project-youtube/4_upload_data_from_gcs_to_bq
+```
+prefect deployment build ./etl_gcs_to_bq.py:etl_gcs_to_bq -n "GCS to BQ"
+prefect deployment apply etl_gcs_to_bq-deployment.yaml
+```
+
+You should be able to see the two deployments here http://localhost:4200/deployments
+
+5. Create BQ table
+on big query run 
+
+```
+CREATE TABLE `youtube_data_all.youtube_trends`
+(
+index INTEGER,
+video_id STRING,
+title STRING,	
+publishedAt	STRING,	
+channelId STRING,	
+channelTitle	STRING,	
+categoryId INTEGER,	
+trending_date STRING,	
+tags STRING,	
+view_count INTEGER,	
+likes INTEGER,	
+dislikes INTEGER,	
+comment_count INTEGER,	
+thumbnail_link STRING,	
+comments_disabled BOOLEAN,	
+ratings_disabled BOOLEAN,	
+description STRING
+);
+```
