@@ -1,111 +1,53 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 import pandas as pd
-
-
-# In[2]:
-
-
-pd.__version__
-
-
-# In[3]:
-
-
-df = pd.read_csv('yellow_tripdata_2021-01.csv', nrows=100)
-
-
-# In[4]:
-
-
-df.tpep_pickup_datetime = pd.to_datetime(df.tpep_pickup_datetime)
-df.tpep_dropoff_datetime = pd.to_datetime(df.tpep_dropoff_datetime)
-
-
-# In[5]:
-
-
+import psycopg2
 from sqlalchemy import create_engine
-
-
-# In[6]:
-
+from time import time
+from pathlib import Path
+import os
+from sqlalchemy import text
+import psycopg2
+from prefect import flow, task
+from prefect_gcp.cloud_storage import GcsBucket
+from random import randint
+from prefect.filesystems import GCS
 
 engine = create_engine('postgresql://root:root@localhost:5432/youtube')
+con = psycopg2.connect(database="youtube", user="root", password="root", host="localhost")
 
-
-# In[7]:
-
-
-print(pd.io.sql.get_schema(df, name='youtube_data', con=engine))
-
-
-# In[8]:
-
-
-df_iter = pd.read_csv('yellow_tripdata_2021-01.csv', iterator=True, chunksize=100000)
-
-
-# In[9]:
-
-
-df = next(df_iter)
-
-
-# In[10]:
-
-
-len(df)
-
-
-# In[11]:
-
-
-df.tpep_pickup_datetime = pd.to_datetime(df.tpep_pickup_datetime)
-df.tpep_dropoff_datetime = pd.to_datetime(df.tpep_dropoff_datetime)
-
-
-# In[12]:
-
-
-df
-
-
-# In[13]:
-
-
-df.head(n=0).to_sql(name='youtube_data', con=engine, if_exists='replace')
-
-
-# In[14]:
-
-
-get_ipython().run_line_magic('time', "df.to_sql(name='youtube_data', con=engine, if_exists='append')")
-
-
-# In[15]:
-
-
-from time import time
-
-
-# In[16]:
-
-
-while True: 
-    t_start = time()
-
-    df = next(df_iter)
-
-    df.tpep_pickup_datetime = pd.to_datetime(df.tpep_pickup_datetime)
-    df.tpep_dropoff_datetime = pd.to_datetime(df.tpep_dropoff_datetime)
+@task()
+def download_data():
+    os.system("kaggle datasets download -d rsrishav/youtube-trending-video-dataset --force")
+    os.system("unzip -o youtube-trending-video-dataset.zip -d youtube-trending-video-dataset")
+    os.system("rm youtube-trending-video-dataset.zip")
     
-    df.to_sql(name='youtube_data', con=engine, if_exists='append')
+@task()
+def drop_table():
+    sql = text('DROP TABLE IF EXISTS youtube_data;')
+    results = engine.execute(sql)
 
-    t_end = time()
+@task()
+def upload_to_postgres():
+    csv_directory = r'/home/testuser/dezoomcamp-project-youtube/2_upload_data_to_postgres/youtube-trending-video-dataset'
+    for idx,filename in enumerate(Path(csv_directory).glob('*youtube_trending_data.csv')):
+        t_start_files = time()
+        df_iter = pd.read_csv(filename, iterator=True, chunksize=50000, sep = ',')
+        print('Inserting file', filename)
+        while True: 
+            t_start = time()
+            df = next(df_iter)
+            df.to_sql(name='youtube_data', con=engine, if_exists='append')
+            t_end = time()
+            print('inserted another chunk, took %.3f second' % (t_end - t_start),filename)
+            break
+        t_end_files = time()
+        print('inserted all csv files, took %.3f second' % (t_end_files - t_start_files))
+    
+@flow()
+def etl_web_to_postgres() -> None:
+    """The main ETL function"""
+    download_data()
+    drop_table()
+    upload_to_postgres()
 
-    print('inserted another chunk, took %.3f second' % (t_end - t_start))
+if __name__ == "__main__":
+    etl_web_to_postgres()
