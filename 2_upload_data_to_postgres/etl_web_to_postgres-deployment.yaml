@@ -3,13 +3,22 @@
 ###
 name: Web to Postgres
 description: The main ETL function
-version: 575e2ad2b7e65b532bd579debbba5885
+version: 266cb2abc07a36c554ca07ae6e579582
 # The work queue that will handle this deployment's runs
 work_queue_name: default
 tags: []
 parameters: {}
-schedule: null
+schedule:
+  cron: 5 18 * * *
+  timezone: null
+  day_or: true
 infra_overrides: {}
+
+###
+### DO NOT EDIT BELOW THIS LINE
+###
+flow_name: etl-web-to-postgres
+manifest_path: null
 infrastructure:
   type: process
   env: {}
@@ -18,16 +27,13 @@ infrastructure:
   command: null
   stream_output: true
   working_dir: null
+  _block_document_id: ba57209a-b971-4d9e-8e5e-fd97f2e0e23c
+  _block_document_name: anonymous-d2f80fab-4544-441b-ae8a-e97b68cc08d7
+  _is_anonymous: true
   block_type_slug: process
   _block_type_slug: process
-
-###
-### DO NOT EDIT BELOW THIS LINE
-###
-flow_name: etl-web-to-postgres
-manifest_path: null
 storage: null
-path: /home/iamuser/dezoomcamp-project-youtube/2_upload_data_to_postgres
+path: /home/testuser/dezoomcamp-project-youtube/2_upload_data_to_postgres
 entrypoint: upload-data.py:etl_web_to_postgres
 parameter_openapi_schema:
   title: Parameters

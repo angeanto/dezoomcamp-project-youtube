@@ -10,11 +10,12 @@ def extract_from_gcs():
     """Download youtube data from GCS"""
     today = date.today()
     today = str(today).replace("-", "")
-    local =f"/home/iamuser/dezoomcamp-project-youtube/4_upload_data_from_gcs_to_bq/{today}.parquet"
-    gcs_path = 'youtube_data'
+    local =f"/home/testuser/dezoomcamp-project-youtube/4_upload_data_from_gcs_to_bq/{today}.parquet"
+    gcs_path = f'youtube_data/{today}.parquet'
     gcs_block = GcsBucket.load("zoom-gcs")
     gcs_block.get_directory(from_path=gcs_path, local_path=local)
-    return Path(f"{gcs_path}")
+    print(Path(f"{gcs_path}"))
+    return Path(f"{local}")
 
 @task()
 def transform(path: Path) -> pd.DataFrame:

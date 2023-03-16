@@ -25,7 +25,7 @@ def write_local(df: pd.DataFrame) -> Path:
     today = date.today()
     today = str(today).replace("-", "")
     today
-    path = Path(f"/home/iamuser/dezoomcamp-project-youtube/3_upload_data_from_postgres_to_gcs/{today}.parquet")
+    path = Path(f"/home/testuser/dezoomcamp-project-youtube/3_upload_data_from_postgres_to_gcs/{today}.parquet")
     df.to_parquet(path, compression="gzip")
     return path, today
 
@@ -46,4 +46,4 @@ def etl_postgres_to_gcs() -> None:
     write_gcs(path,today)
 
 if __name__ == "__main__":
-    etl_web_to_gcs()
+    etl_postgres_to_gcs()

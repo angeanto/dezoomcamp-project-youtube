@@ -3,13 +3,22 @@
 ###
 name: Postgres to GCS
 description: The main ETL function
-version: 1a9690a2f835742aec7c4f9f0746015e
+version: 64c41e25398476e95dfcf47e033b98a3
 # The work queue that will handle this deployment's runs
 work_queue_name: default
 tags: []
 parameters: {}
-schedule: null
+schedule:
+  cron: 15 18 * * *
+  timezone: null
+  day_or: true
 infra_overrides: {}
+
+###
+### DO NOT EDIT BELOW THIS LINE
+###
+flow_name: etl-postgres-to-gcs
+manifest_path: null
 infrastructure:
   type: process
   env: {}
@@ -18,16 +27,13 @@ infrastructure:
   command: null
   stream_output: true
   working_dir: null
+  _block_document_id: 644baf5b-8723-42b1-89dc-07c175273ba2
+  _block_document_name: anonymous-e68fa945-14e0-49bd-839b-e2782d04104d
+  _is_anonymous: true
   block_type_slug: process
   _block_type_slug: process
-
-###
-### DO NOT EDIT BELOW THIS LINE
-###
-flow_name: etl-postgres-to-gcs
-manifest_path: null
 storage: null
-path: /home/iamuser/dezoomcamp-project-youtube/3_upload_data_from_postgres_to_gcs
+path: /home/testuser/dezoomcamp-project-youtube/3_upload_data_from_postgres_to_gcs
 entrypoint: move-data-to-gcs.py:etl_postgres_to_gcs
 parameter_openapi_schema:
   title: Parameters

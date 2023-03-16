@@ -3,13 +3,22 @@
 ###
 name: GCS to BQ
 description: Main ETL flow to load data into Big Query
-version: 2a237f4f039abc555802827f7b32275b
+version: e0c53873e1e6bd1c608e105af6270aa3
 # The work queue that will handle this deployment's runs
 work_queue_name: default
 tags: []
 parameters: {}
-schedule: null
+schedule:
+  cron: 25 18 * * *
+  timezone: null
+  day_or: true
 infra_overrides: {}
+
+###
+### DO NOT EDIT BELOW THIS LINE
+###
+flow_name: etl-gcs-to-bq
+manifest_path: null
 infrastructure:
   type: process
   env: {}
@@ -18,16 +27,13 @@ infrastructure:
   command: null
   stream_output: true
   working_dir: null
+  _block_document_id: 5ab4af3c-ee24-4967-848f-972e0311ea2c
+  _block_document_name: anonymous-ab8827c8-a830-4d83-bffb-ab5c7ce14470
+  _is_anonymous: true
   block_type_slug: process
   _block_type_slug: process
-
-###
-### DO NOT EDIT BELOW THIS LINE
-###
-flow_name: etl-gcs-to-bq
-manifest_path: null
 storage: null
-path: /home/iamuser/dezoomcamp-project-youtube/4_upload_data_from_gcs_to_bq
+path: /home/testuser/dezoomcamp-project-youtube/4_upload_data_from_gcs_to_bq
 entrypoint: etl_gcs_to_bq.py:etl_gcs_to_bq
 parameter_openapi_schema:
   title: Parameters
