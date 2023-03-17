@@ -1,0 +1,60 @@
+
+version: 2
+
+sources:
+    - name: staging
+      #For bigquery:
+      database: dtc-de-youtube
+
+      # For postgres:
+      #database: production
+      schema: youtube_data_all
+
+      # loaded_at_field: record_loaded_at
+      tables:
+        - name: youtube_trends
+         # freshness:
+           # error_after: {count: 6, period: hour}
+
+models:
+    - name: stg_youtube_trends
+      description: > 
+        Youtube trends
+      columns:
+          - name: index
+            tests:
+                - unique:
+                    severity: warn
+            description: some
+          - name: video_id
+            description: some
+          - name: title
+            description: some
+          - name: publishedAt
+            description: some
+          - name: channelId
+            description: some
+          - name: channelTitle
+            description: some
+          - name: categoryId
+            description: some
+          - name: trending_date
+            description: some
+          - name: tags
+            description: some
+          - name: view_count
+            description: some
+          - name: likes
+            description: some
+          - name: dislikes
+            description: some
+          - name: comment_count
+            description: some
+          - name: thumbnail_link
+            description: some
+          - name: comments_disabled
+            description: some
+          - name: ratings_disabled
+            description: some
+          - name: description
+            description: some
