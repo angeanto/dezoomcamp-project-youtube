@@ -1,19 +1,45 @@
 # Introduction
+Welcome to this final project of Data Engineering Zoomcamp. Run the code below to reproduce the project on your own. Let me know if anything does not work properly. 
 
 ## Problem description
+We have a postgres db which includes youtube trends data, running in a cloud VM. In the project, this data reach our postgres with [this](https://github.com/angeanto/dezoomcamp-project-youtube/blob/master/2_upload_data_to_postgres/upload-data.py) python script. Imagine that there's an application running behind the scenes which generates new records every day. In the project we perform the below operations (steps): 
+
+- Upload the data from **kaggle** to the postgres which is running in our VM in Google Cloud.
+- Move the data from the postgres to Google Cloud Storage.
+- Move data from Google Cloud Storage to Big Query.
+- Use dbt to create staging area materialized view and finally a fact table named fact_youtube_trends.
+- Use Google Data Studio to visualize this table's data and create 2 tiles. 
+
+**The final goal of this project is to move the data daily in a batch logic from the postgres db to Big Query using GCS (a Data Lake). Finally we use dbt for our analytics engineering and data consistency and visualize the fact the table with Google Data Studio. The project performs all these steps in a small scale but covers a 100% real scenario.**
 
 ## Cloud
+The project is developed in the Google cloud and IaC tools Terraform and docker are used.
+Important: Make sure to use **dtc-de-youtube** name for your google cloud project. 
 
 ## Data ingestion (batch) & Workflow orchestration
+We do not use both spark and kafka. We use batch logic with prefect python and pandas code to move data between postgres --> gcs --> big query with prefect and relevant dags.
+
+THe project uses 3 prefect deployments: 
+- etl-web-to-postgres: Uploads data from kaggle to postgres (Scheduled to run daily 18:05)
+- etl-postgres-to-gcs: Moves data from postgres to GCS (Scheduled to run daily 18:15)
+- etl-gcs-to-bq: Moves data from GCS to Big Query (Scheduled to run daily 18:25)
+
+All the scripts make use of today's date function. Make sure when testing, to run these 3 deployments the same day in order to move the file names properly. The code is parameterized to schedule them with a 10 minute difference. 
 
 ## Data warehouse
+Big Query is used. Make sure to use dtc-de-youtube name for your google cloud project.
+dbt creates a clusterer and partioned table in a way that makes sense. 
+The file [models/core/fact_youtube_trends.sql](https://github.com/angeanto/dezoomcamp-project-youtube/blob/master/models/core/fact_youtube_trends.sql) creates a fact table cluster by `categoryId`. That way our queries commonly filter on this particular column. Clustering accelerates queries because the query only scans the blocks that match the filter. Our queries filter on columns that have many distinct values (high cardinality). Clustering accelerates these queries by providing BigQuery with detailed metadata for where to get input data. Furthermore, the fact table is partitioned by date field `trending_date_timestamp`. Table partitioning is a technique for splitting large tables into smaller ones. When you partition a table and then execute a query, it is also BigQuery that determines which partition to access and minimizes the data that must be read. A partitioned table is a table divided to sections by partitions. Dividing a large table into smaller partitions allows for improved performance and reduced costs by controlling the amount of data retrieved from a query.Clustering sorts the data based on one or more columns in the table. The order of the clustered columns determines the sort order of the data. Clustering can improve the performance of certain types of queries, such as queries that use filter clauses and queries that aggregate data.
 
 ## Transformations (dbt, spark, etc)
+We use dbt to create staging materialized views (the idea is to process anything there) and finally a fact table named fact_youtube_trends.
 
 ## Dashboard
+- Used Google Data Studio to visualize this table's data and create 2 tiles. Visit https://lookerstudio.google.com/reporting/48a8f184-3605-4071-bf52-4edcb49882bf
+and check the 2 created tiles. 
 
 ## Reproducibility
-
+Hope below guide helps reproduce anything succesfully. 
 
 # How to reproduce the project
 
@@ -119,6 +145,10 @@ on the starting directory of VM run
 mkdir .kaggle
 ```
 then from your local machine (where you have downloaded the kaggle.json file) move kaggle.json to vm. 
+
+```
+put .kaggle/kaggle.json .kaggle
+```
 
 Connect with sftp
 ```
@@ -277,7 +307,7 @@ You should be able to see the 3 deployments here http://localhost:4200/deploymen
 
 ### Start an agent to create scheduled deployments
 
-Open a new VM terminal and run
+Open a new VM terminal and run (Important: YOU SHOULD ALWAYS HAVE TO RUN THIS COMMAND EVERY TIME YOU TURN ON AND OFF THE GOOGLE CLOUD VM)
 
 ```
 prefect agent start --work-queue "default"
@@ -291,3 +321,29 @@ Run:
 3. GCS to BQ
 
 ## DBT
+
+Login to your dbt account or create a new one, because dbt free developer policy allows 1 single project.
+
+Now connect dbt with BigQuery following one by one the [instructions](https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/week_4_analytics_engineering/dbt_cloud_setup.md).
+
+DO NOT CREATE THE BIG QUERY DATASET FROM DBT ENVIRONMENT. Create it from BigQuery and select the same region with your project. I ran it setting everything in Europe-West-6. 
+
+Name your dataset dbt_youtube (SOS). 
+
+Add your forked github repository following the instructions above at 
+**Add GitHub repository** section. Clone with ssh.
+
+Click start development in the IDE.
+
+run
+
+```
+dbt deps
+dbt run
+```
+You can now check that materialized view and fact table exists. 
+
+## Google Data Studio
+
+Visit https://lookerstudio.google.com/reporting/48a8f184-3605-4071-bf52-4edcb49882bf
+and check the 2 created tiles. 
